@@ -11,6 +11,7 @@ pipeline {
     gitWebaddress = 'https://github.com/junkmm/sb_code.git'
     gitSshaddress = 'git@github.com:junkmm/sb_code.git'
     gitCredential = 'git_cre' // github credential 생성시의 ID
+    dockerHubRegistry = 'kimjhj4270/sbimage'
   }
 
   stages {
