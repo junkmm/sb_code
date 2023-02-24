@@ -41,5 +41,21 @@ pipeline {
         }
       }
     }
+    stage('Docker image Build') {
+      steps {
+        sh "docker build -t ${dockerHubRegistry}:${currentBuild.number} ."
+        sh "docker build -t ${dockerHubRegistry}:latest ."
+        // oolralra/sbimage:4 이런식으로 빌드가 될것이다.
+        // currentBuild.number 젠킨스에서 제공하는 빌드넘버변수.
+      }
+      post {
+        failure {
+          echo 'docker image build failure'
+        }
+        success {
+          echo 'docker image build success'
+        }
+      }
+    }
   }
 }
