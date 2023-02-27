@@ -82,20 +82,30 @@ pipeline {
         }
       }
     }
-    stage('docker container deployment') {
+    stage('k8s manifest file update') {
       steps {
-        sh "docker rm -f sb"
-        sh "docker run -dp 5656:8085 --name sb ${dockerHubRegistry}:${currentBuild.number}"
+        git credentialsId: githubCredential,
+            url: gitWebaddress,
+            branch: 'main'
         
+        // 이미지 태그 변경 후 메인 브랜치에 푸시
+        sh "git config --global user.email ${gitEmail}"
+        sh "git config --global user.name ${gitName}"
+        sh "sed -i 's@${dockerHubRegistry}:.*@${dockerHubRegistry}:${currentBuild.number}@g' deploy/sb-deploy.yml"
+        sh "git add ."
+        sh "git commit -m 'fix:${dockerHubRegistry} ${currentBuild.number} image versioning'"
+        sh "git branch -M main"
+        sh "git remote remove origin"
+        sh "git remote add origin ${gitSshaddress}"
+        sh "git push -u origin main"
+
       }
       post {
         failure {
-          echo 'docker container deployment failure'
-          slackSend (color: '#FF0000', message: "FAILURE: docker container deployment '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+          echo 'Container Deploy failure'
         }
         success {
-          echo 'docker container deployment success'
-          slackSend (color: '#0000FF', message: "SUCCESS: docker container deployment '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+          echo 'Container Deploy success'  
         }
       }
     }
